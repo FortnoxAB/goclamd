@@ -74,6 +74,11 @@ func (s *streamScanner) Ping() error {
 	}
 	defer c.Close()
 
+	err = c.SetDeadline(time.Now().Add(time.Second * 2))
+	if err != nil {
+		return err
+	}
+
 	err = c.Command("PING")
 	if err != nil {
 		return err
