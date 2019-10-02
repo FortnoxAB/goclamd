@@ -3,9 +3,9 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"log"
 
 	"github.com/fortnoxab/goclamd"
-	"github.com/sirupsen/logrus"
 )
 
 func main() {
@@ -13,14 +13,13 @@ func main() {
 	scanner := goclamd.NewStreamScanner("192.168.3.57:30028")
 
 	err := scanner.Ping()
-	logrus.Info("Ping error: ", err)
+	log.Printf("Ping error: %v\n", err)
 
 	data := bytes.NewBuffer(goclamd.EICAR)
 	err = scanner.Scan(data)
-	logrus.Info(err)
+	log.Println(err)
 
 	okData := bytes.NewBufferString("clean")
 	err = scanner.Scan(okData)
-	logrus.Info(err)
-
+	log.Println(err)
 }
