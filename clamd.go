@@ -27,6 +27,7 @@ const (
 type StreamScanner interface {
 	Scan(io.Reader) error
 	Ping() error
+	Reload() error
 }
 
 type streamScanner struct {
@@ -89,6 +90,33 @@ func (s *streamScanner) Ping() error {
 		return fmt.Errorf("goclamd: expected PONG, got: %s", string(pong))
 	}
 	return err
+}
+
+// Reload the virus databases
+func (s *streamScanner) Reload() error {
+        ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+        defer cancel()
+        c, err := DialContext(ctx, s.endpoint)
+        if err != nil {
+                return err
+        }
+        defer c.Close()
+
+        err = c.SetDeadline(time.Now().Add(time.Second * 2))
+        if err != nil {
+                return err
+        }
+
+        err = c.Command("RELOAD")
+        if err != nil {
+                return err
+        }
+        reload, err := c.ReadResponse()
+
+        if string(reload) != "RELOADING" {
+                return fmt.Errorf("goclamd: expected RELOADING, got: %s", string(reload))
+        }
+        return err
 }
 
 var statusRegexp = regexp.MustCompile(`^(.*): (.*) (FOUND|ERROR|OK)`)
